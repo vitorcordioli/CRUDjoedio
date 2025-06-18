@@ -1,92 +1,77 @@
-//crie o conteudo deste arquivo vendaController.js com o seguinte conteudo: tabela de vendas com os campos: id, data, valor, quantidade, produto_id
-
 const Venda = require('../models/vendaModel');
+const Produto = require('../models/produtoModel');
 
 const vendaController = {
-    createVenda: (req, res) => {
-        const newVenda = {
-            data: req.body.data,
-            valor: req.body.valor,
-            quantidade: req.body.quantidade,
-            produto_id: req.body.produto_id,
-        };
+  getAllVendas: (req, res) => {
+    Venda.getAll((err, vendas) => {
+      if (err) return res.status(500).json({ error: err });
+      res.render('vendas/index', { vendas });
+    });
+  },
 
-        Venda.create(newVenda, (err, vendaId) => {
-            if (err) {
-                return res.status(500).json({ error: err });
-            }
-            res.redirect('/vendas');
-        });
-    },
+  getVendaById: (req, res) => {
+    const id = req.params.id;
+    Venda.findById(id, (err, venda) => {
+      if (err) return res.status(500).json({ error: err });
+      if (!venda) return res.status(404).send('Venda não encontrada');
+      res.render('vendas/show', { venda });
+    });
+  },
 
-    getVendaById: (req, res) => {
-        const vendaId = req.params.id;
+  renderCreateForm: (req, res) => {
+    Produto.getAll(null, (err, produtos) => {
+      if (err) return res.status(500).send('Erro ao carregar produtos');
+      res.render('vendas/create', { produtos });
+    });
+  },
 
-        Venda.findById(vendaId, (err, venda) => {
-            if (err) {
-                return res.status(500).json({ error: err });
-            }
-            if (!venda) {
-                return res.status(404).json({ message: 'Venda not found' });
-            }
-            res.render('vendas/show', { venda });
-        });
-    },
+  createVenda: (req, res) => {
+    const novaVenda = {
+      data: req.body.data,
+      valor: req.body.valor,
+      quantidade: req.body.quantidade,
+      produto_id: req.body.produto_id
+    };
 
-    getAllVendas: (req, res) => {
-        Venda.getAll((err, vendas) => {
-            if (err) {
-                return res.status(500).json({ error: err });
-            }
-            res.render('vendas/index', { vendas });
-        });
-    },
+    Venda.create(novaVenda, (err, id) => {
+      if (err) return res.status(500).json({ error: err });
+      res.redirect('/vendas');
+    });
+  },
 
-    renderCreateForm: (req, res) => {
-        res.render('vendas/create');
-    },
+  renderEditForm: (req, res) => {
+    const id = req.params.id;
+    Venda.findById(id, (err, venda) => {
+      if (err) return res.status(500).json({ error: err });
+      if (!venda) return res.status(404).send('Venda não encontrada');
+      Produto.getAll(null, (err, produtos) => {
+        if (err) return res.status(500).send('Erro ao carregar produtos');
+        res.render('vendas/edit', { venda, produtos });
+      });
+    });
+  },
 
-    renderEditForm: (req, res) => {
-        const vendaId = req.params.id;
+  updateVenda: (req, res) => {
+    const id = req.params.id;
+    const vendaAtualizada = {
+      data: req.body.data,
+      valor: req.body.valor,
+      quantidade: req.body.quantidade,
+      produto_id: req.body.produto_id
+    };
+    Venda.update(id, vendaAtualizada, (err) => {
+      if (err) return res.status(500).json({ error: err });
+      res.redirect('/vendas');
+    });
+  },
 
-        Venda.findById(vendaId, (err, venda) => {
-            if (err) {
-                return res.status(500).json({ error: err });
-            }
-            if (!venda) {
-                return res.status(404).json({ message: 'Venda not found' });
-            }
-            res.render('vendas/edit', { venda });
-        });
-    },
-
-    updateVenda: (req, res) => {
-        const vendaId = req.params.id;
-        const updatedVenda = {
-            data: req.body.data,
-            valor: req.body.valor,
-            quantidade: req.body.quantidade,
-            produto_id: req.body.produto_id,
-        };
-
-        Venda.update(vendaId, updatedVenda, (err, result) => {
-            if (err) {
-                return res.status(500).json({ error: err });
-            }
-            res.redirect('/vendas');
-        });
-    },
-
-    deleteVenda: (req, res) => {
-        const vendaId = req.params.id;
-
-        Venda.delete(vendaId, (err, result) => {
-            if (err) {
-                return res.status(500).json({ error: err });
-            }
-            res.redirect('/vendas');
-        });
-    }
+  deleteVenda: (req, res) => {
+    const id = req.params.id;
+    Venda.delete(id, (err) => {
+      if (err) return res.status(500).json({ error: err });
+      res.redirect('/vendas');
+    });
+  }
 };
 
 module.exports = vendaController;

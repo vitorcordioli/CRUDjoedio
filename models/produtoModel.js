@@ -42,19 +42,26 @@ const Produto = {
     },
 
     getAll: (categoria, callback) => {
-        let query = 'SELECT produtos.id, produtos.nome, produtos.descricao, produtos.preco, produtos.quantidade, categorias.nome AS categoria_nome FROM produtos JOIN categorias ON produtos.categoria = categorias.id';
-        
-        if (categoria) {
-            query += ' WHERE produtos.categoria = ?';
-        }
+    let query = `
+        SELECT produtos.id, produtos.nome, produtos.descricao, produtos.preco, produtos.quantidade, categorias.nome AS categoria_nome 
+        FROM produtos 
+        JOIN categorias ON produtos.categoria = categorias.id`;
     
-        db.query(query, [categoria], (err, results) => {
-            if (err) {
-                return callback(err);
-            }
-            callback(null, results);
-        });
-    },
+    let params = [];
+
+    if (categoria) {
+        query += ' WHERE produtos.categoria = ?';
+        params.push(categoria);
+    }
+
+    db.query(query, params, (err, results) => {
+        if (err) {
+            return callback(err);
+        }
+        callback(null, results);
+    });
+},
+
     
 };
 
