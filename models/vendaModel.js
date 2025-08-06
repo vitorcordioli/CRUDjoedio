@@ -1,54 +1,40 @@
-const db = require('../config/db');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/db'); // Conexão com o banco
+const Produto = require('./produtoModel'); // Importa o modelo de Produto
 
-const Venda = {
-  create: (venda, callback) => {
-    const query = 'INSERT INTO vendas (data, valor, quantidade, produto_id) VALUES (?, ?, ?, ?)';
-    db.query(query, [venda.data, venda.valor, venda.quantidade, venda.produto_id], (err, results) => {
-      if (err) return callback(err);
-      callback(null, results.insertId);
-    });
+// Definindo o modelo Venda
+const Venda = sequelize.define('Venda', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
   },
-
-  findById: (id, callback) => {
-    const query = `
-      SELECT vendas.*, produtos.nome AS nome_produto
-      FROM vendas
-      JOIN produtos ON vendas.produto_id = produtos.id
-      WHERE vendas.id = ?
-    `;
-    db.query(query, [id], (err, results) => {
-      if (err) return callback(err);
-      callback(null, results[0]);
-    });
+  data: {
+    type: DataTypes.DATE,
+    allowNull: false,
   },
-
-  getAll: (callback) => {
-    const query = `
-      SELECT vendas.*, produtos.nome AS nome_produto
-      FROM vendas
-      JOIN produtos ON vendas.produto_id = produtos.id
-    `;
-    db.query(query, (err, results) => {
-      if (err) return callback(err);
-      callback(null, results);
-    });
+  valor: {
+    type: DataTypes.FLOAT,
+    allowNull: false,
   },
-
-  update: (id, venda, callback) => {
-    const query = 'UPDATE vendas SET data = ?, valor = ?, quantidade = ?, produto_id = ? WHERE id = ?';
-    db.query(query, [venda.data, venda.valor, venda.quantidade, venda.produto_id, id], (err, results) => {
-      if (err) return callback(err);
-      callback(null, results);
-    });
+  quantidade: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
   },
+  produto_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: Produto, // Relaciona a venda com o produto
+      key: 'id'
+    },
+    allowNull: false,
+  },
+}, {
+  tableName: 'vendas', // Nome da tabela no banco
+  timestamps: false,   // Desabilita a criação automática dos campos `createdAt` e `updatedAt`
+});
 
-  delete: (id, callback) => {
-    const query = 'DELETE FROM vendas WHERE id = ?';
-    db.query(query, [id], (err, results) => {
-      if (err) return callback(err);
-      callback(null, results);
-    });
-  }
-};
+// Definindo a associação entre Venda e Produto
+Venda.belongsTo(Produto, { foreignKey: 'produto_id', as: 'produto' });
 
 module.exports = Venda;

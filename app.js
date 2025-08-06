@@ -9,7 +9,16 @@ const userRoutes = require('./routes/userRoutes');
 const produtoRoutes = require('./routes/produtoRoutes');
 const categoriaRoutes = require('./routes/categoriaRoutes');
 const vendaRoutes = require('./routes/vendaRoutes');  // 👈 ADICIONADO
+const sequelize = require('./config/db'); 
 
+sequelize.sync()
+  .then(() => {
+    console.log('Tabelas criadas ou já existentes');
+  })
+  .catch((err) => {
+    console.error('Erro ao sincronizar os modelos:', err);
+  });
+  
 const app = express();
 const PORT = process.env.PORT || 3000;
 
